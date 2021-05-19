@@ -33,6 +33,7 @@
     groups:
       - docker
     state: present
+    append: yes
   when: '"docker.io" in packages'
 
 - name: 'Add authorized key file for {{ user }}'
