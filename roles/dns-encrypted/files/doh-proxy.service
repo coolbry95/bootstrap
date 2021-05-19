@@ -1,0 +1,15 @@
+[Unit]
+Description=DOH proxy in rust
+
+[Service]
+StartLimitInterval=5
+StartLimitBurst=10
+ExecStart=/usr/local/bin/doh-proxy --listen-address=127.0.0.1:5301 --server-address=127.0.0.1:5300
+
+WorkingDirectory=/root
+
+Restart=always
+RestartSec=120
+
+[Install]
+WantedBy=multi-user.target

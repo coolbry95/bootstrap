@@ -1,0 +1,8 @@
+systemctl stop nginx
+
+lego --email="coolbry95@gmail.com" --domains="{{ cert_file }}" --accept-tos --http --tls --path /root/.lego renew --days 45
+
+cp /root/.lego/certificates/{{ cert_file }}.key /etc/nginx/ssl/
+cp /root/.lego/certificates/{{ cert_file }}.crt /etc/nginx/ssl/
+
+systemctl start nginx

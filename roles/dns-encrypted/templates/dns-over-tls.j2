@@ -1,0 +1,14 @@
+upstream dns-backend {
+	server 127.0.0.1:5300;
+	server [::1]:5300;
+}
+
+server {
+	listen 853 ssl;
+	listen [::]:853 ssl;
+
+	ssl_certificate          /etc/nginx/ssl/{{ cert_file }}.crt;
+	ssl_certificate_key      /etc/nginx/ssl/{{ cert_file }}.key;
+
+	proxy_pass dns-backend;
+}

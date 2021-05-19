@@ -1,0 +1,92 @@
+---
+# tasks file for nginx
+- name: Install nginx
+  apt:
+    name: nginx-full
+    state: present
+    update_cache: true
+ 
+- name: Mkdir ssl
+  file:
+    state: directory
+    path: /etc/nginx/ssl/
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Generate dhparam
+  openssl_dhparam:
+    size: 4096
+    path: /etc/nginx/ssl/dhparam.pem
+
+#- name: Generate dhparam
+#  shell: openssl dhparam -out /etc/nginx/ssl/dhparam.pem 4096
+#  args:
+#      creates: /etc/nginx/ssl/dhparam.pem
+
+- name: Delete default site
+  file:
+     state: absent
+     path: /etc/nginx/sites-enabled/default
+
+- name: Copy conf
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- unarchive:
+    remote_src: yes
+    src: https://github.com/go-acme/lego/releases/download/v4.0.1/lego_v4.0.1_linux_amd64.tar.gz
+    dest: /usr/bin/
+    creates: /usr/local/bin/lego
+    exclude:
+        - CHANGELOG.md
+        - LICENSE
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Stopped nginx
+  service:
+      name: nginx
+      state: stopped
+
+- name: Check if certs already exist
+  stat:
+    path: /root/.lego/certificates/{{ cert_file}}.key
+  register: stat_result
+
+- name: Get certs
+  shell: |
+    #lego --server=https://acme-staging-v02.api.letsencrypt.org/directory --email="{{ letsencrypt_email }}" --domains="{{ cert_file }}" --accept-tos -path /root/.lego --http --tls run
+      lego --server=https://acme-v02.api.letsencrypt.org/directory --email="{{ letsencrypt_email }}" --domains="{{ cert_file }}" --accept-tos -path /root/.lego --http --tls run
+      cp /root/.lego/certificates/{{ cert_file }}.key /etc/nginx/ssl/
+      cp /root/.lego/certificates/{{ cert_file }}.crt /etc/nginx/ssl/
+  when: not stat_result.stat.exists
+  #with: '{{ cert_files }}'
+
+
+- name: Start nginx
+  service:
+      name: nginx
+      state: started
+      enabled: yes
+
+- name: Copy renew.sh
+  template:
+    src: renew.sh.j2
+    dest: /root/renew.sh
+    owner: root
+    group: root
+    mode: 0744
+
+- name: Add cron entry to get certs
+  cron:
+      name: "renew certs"
+      minute: "0"
+      hour: "3"
+      day: "1"
+      job: "/root/renew.sh"

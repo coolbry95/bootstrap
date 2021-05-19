@@ -1,0 +1,104 @@
+---
+# TODO: check the modes on the files to make sure it doesn't have unecassry permissions
+- name: Download dnscrypt blacklist
+  get_url:
+    url: https://download.dnscrypt.info/blacklists/domains/mybase.txt
+    dest: /etc/dnscrypt-proxy/mybase.txt
+    mode: 0644
+
+- unarchive:
+    remote_src: yes
+    src: https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.0.44/dnscrypt-proxy-linux_x86_64-2.0.44.tar.gz
+    dest: /tmp/
+    creates: /tmp/linux_x86_64
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Copy dnscrypt-proxy to correct locatoin
+  copy:
+    remote_src: yes
+    src: /tmp/linux-x86_64/dnscrypt-proxy
+    dest: /usr/local/bin/dnscrypt-proxy
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Copy config file
+  copy:
+    src: dnscrypt-proxy.toml
+    dest: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy systemd service file for dnscrypt-proxy
+  copy:
+    src: dnscrypt-proxy.service
+    dest: /etc/systemd/system/dnscrypt-proxy.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Start dnscrypt-proxy
+  service:
+    name: dnscrypt-proxy
+    state: started
+    enabled: yes
+    daemon_reload: true
+
+- name: Install cargo
+  shell: curl https://sh.rustup.rs -sSf | sh -s -- -y
+
+- name: Install doh-proxy dependencies
+  apt:
+    name: ['gcc', 'make']
+    state: present
+
+- name: Install doh-proxy
+  shell: /root/.cargo/bin/cargo install --root /usr/local doh-proxy
+
+- name: Copy systemd service file for rust-doh
+  copy:
+    src: doh-proxy.service
+    dest: /etc/systemd/system/doh-proxy.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Start rust-doh
+  service:
+    name: doh-proxy
+    state: started
+    enabled: yes
+    daemon_reload: true
+
+- name: Dns-over-https
+  template:
+    src: dns-over-https.j2
+    dest: /etc/nginx/sites-enabled/dns-over-https
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Ensure streams directory exists
+  file:
+    path: /etc/nginx/streams/
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Dns-over-tls
+  template:
+    src: dns-over-tls.j2
+    dest: /etc/nginx/streams/dns-over-tls
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Restart nginx
+  service:
+     name: nginx
+     state: restarted
+     daemon_reload: true

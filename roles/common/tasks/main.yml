@@ -1,0 +1,42 @@
+---
+# tasks file for common
+
+- name:
+  apt:
+    name: "*"
+    state: latest
+    update_cache: true
+
+- name:
+  apt:
+    name: '{{ item }}'
+    state: latest
+  loop: '{{ packages }}'
+
+- name: Set hostname '{{ hostname }}'
+  hostname:
+    name: '{{ hostname }}'
+
+- name: Add user
+  user:
+    name: '{{ user }}'
+    groups:
+      - sudo
+    home: '/home/{{ user }}'
+    shell: /bin/zsh
+    append: yes
+    state: present
+
+- name: Add user
+  user:
+    name: '{{ user }}'
+    groups:
+      - docker
+    state: present
+  when: '"docker.io" in packages'
+
+- name: 'Add authorized key file for {{ user }}'
+  ansible.posix.authorized_key:
+    user: '{{ user }}'
+    key: '{{ user_key_url }}'
+    state: present
