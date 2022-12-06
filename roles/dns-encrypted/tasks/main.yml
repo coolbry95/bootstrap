@@ -8,7 +8,7 @@
 
 - unarchive:
     remote_src: yes
-    src: https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.0.44/dnscrypt-proxy-linux_x86_64-2.0.44.tar.gz
+    src: https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.2/dnscrypt-proxy-linux_x86_64-2.1.2.tar.gz
     dest: /tmp/
     creates: /tmp/linux_x86_64
     owner: root
