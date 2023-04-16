@@ -8,7 +8,7 @@
 
 - unarchive:
     remote_src: yes
-    src: https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.2/dnscrypt-proxy-linux_x86_64-2.1.2.tar.gz
+    src: https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.4/dnscrypt-proxy-linux_x86_64-2.1.4.tar.gz
     dest: /tmp/
     creates: /tmp/linux_x86_64
     owner: root
@@ -47,16 +47,34 @@
     enabled: yes
     daemon_reload: true
 
-- name: Install cargo
-  shell: curl https://sh.rustup.rs -sSf | sh -s -- -y
+#- name: Install cargo
+#  shell: curl https://sh.rustup.rs -sSf | sh -s -- -y
+#
+#- name: Install doh-proxy dependencies
+#  apt:
+#    name: ['gcc', 'make']
+#    state: present
+#
+#- name: Install doh-proxy
+#  shell: /root/.cargo/bin/cargo install --root /usr/local doh-proxy
+#
+- unarchive:
+    remote_src: yes
+    src: https://github.com/DNSCrypt/doh-server/releases/download/0.9.8/doh-proxy_0.9.8_linux-x86_64.tar.bz2
+    dest: /tmp/
+    creates: /tmp/doh-proxy
+    owner: root
+    group: root
+    mode: 0755
 
-- name: Install doh-proxy dependencies
-  apt:
-    name: ['gcc', 'make']
-    state: present
-
-- name: Install doh-proxy
-  shell: /root/.cargo/bin/cargo install --root /usr/local doh-proxy
+- name: Copy dnscrypt-proxy to correct locatoin
+  copy:
+    remote_src: yes
+    src: /tmp/linux-x86_64/dnscrypt-proxy
+    dest: /usr/local/bin/dnscrypt-proxy
+    owner: root
+    group: root
+    mode: 0755
 
 - name: Copy systemd service file for rust-doh
   copy:
