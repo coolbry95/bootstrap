@@ -1,6 +1,6 @@
 [Unit]
 Description=Encrypted/authenticated DNS proxy
-ConditionFileIsExecutable=/usr/bin/dnscrypt-proxy
+ConditionFileIsExecutable=/usr/local/bin/dnscrypt-proxy
 
 [Service]
 StartLimitInterval=5

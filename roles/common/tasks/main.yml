@@ -2,13 +2,13 @@
 # tasks file for common
 
 - name:
-  apt:
+  dnf:
     name: "*"
     state: latest
     update_cache: true
 
 - name:
-  apt:
+  dnf:
     name: '{{ item }}'
     state: latest
   loop: '{{ packages }}'
@@ -21,20 +21,11 @@
   user:
     name: '{{ user }}'
     groups:
-      - sudo
+      - wheel
     home: '/home/{{ user }}'
     shell: /bin/zsh
     append: yes
     state: present
-
-- name: Add user
-  user:
-    name: '{{ user }}'
-    groups:
-      - docker
-    state: present
-    append: yes
-  when: '"docker.io" in packages'
 
 - name: 'Add authorized key file for {{ user }}'
   ansible.posix.authorized_key:

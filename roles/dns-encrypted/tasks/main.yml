@@ -1,4 +1,30 @@
 ---
+- name: Allow Nginx to listen on tcp port 853
+  community.general.seport:
+    ports: 853
+    proto: tcp
+    setype: http_port_t
+    state: present
+
+- name: Enable firewall ports for plex
+  ansible.posix.firewalld:
+    port: '{{ item }}'
+    permanent: yes
+    immediate: true
+    state: enabled
+  loop:
+    - 80/tcp # nginx
+    - 443/tcp # nginx
+    - 853/tcp # nginx
+
+- name: Ensure /etc/dnscrypt-proxy directory exists
+  file:
+    path: /etc/dnscrypt-proxy
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
 # TODO: check the modes on the files to make sure it doesn't have unecassry permissions
 - name: Download dnscrypt blacklist
   get_url:
@@ -94,23 +120,15 @@
 - name: Dns-over-https
   template:
     src: dns-over-https.j2
-    dest: /etc/nginx/sites-enabled/dns-over-https
+    dest: /etc/nginx/conf.d/dns-over-https.conf
     owner: root
     group: root
     mode: 0644
 
-- name: Ensure streams directory exists
-  file:
-    path: /etc/nginx/streams/
-    state: directory
-    owner: root
-    group: root
-    mode: 0755
-
 - name: Dns-over-tls
   template:
     src: dns-over-tls.j2
-    dest: /etc/nginx/streams/dns-over-tls
+    dest: /etc/nginx/conf.d/dns-over-tls.conf
     owner: root
     group: root
     mode: 0644

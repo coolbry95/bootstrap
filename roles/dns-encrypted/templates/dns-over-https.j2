@@ -6,9 +6,8 @@ server {
 	return 301 https://{{ dns_name }}$request_uri;
 }
 
-upstream dns-backend {
+upstream doh-backend {
 	server 127.0.0.1:5301;
-	server [::1]:5301;
 }
 
 server {
@@ -20,8 +19,8 @@ server {
 	root /var/www/html/dns;
 	#access_log /var/log/nginx/dns.access.log
 
-	ssl_certificate          /etc/nginx/ssl/{{ cert_file }}.crt;
-	ssl_certificate_key      /etc/nginx/ssl/{{ cert_file }}.key;
+	ssl_certificate          /etc/pki/tls/certs/{{ cert_file }}.crt;
+	ssl_certificate_key      /etc/pki/tls/private/{{ cert_file }}.key;
 
 	location / {
 		deny all;
@@ -37,6 +36,6 @@ server {
 		proxy_redirect off;
 		proxy_set_header X-Forwarded-Proto $scheme;
 		proxy_read_timeout 86400;
-		proxy_pass http://dns-backend/dns-query ;
+		proxy_pass http://doh-backend/dns-query;
 	}
 }
