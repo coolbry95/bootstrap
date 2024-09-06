@@ -6,8 +6,8 @@ server {
 	listen 853 ssl;
 	listen [::]:853 ssl;
 
-	ssl_certificate          /etc/pki/tls/certs/{{ cert_file }}.crt;
-	ssl_certificate_key      /etc/pki/tls/private/{{ cert_file }}.key;
+	ssl_certificate          /etc/pki/tls/certs/{{ dns_encrypted_name }}.crt;
+	ssl_certificate_key      /etc/pki/tls/private/{{ dns_encrypted_name }}.key;
 
 	#proxy_pass dns-backend;
 }
